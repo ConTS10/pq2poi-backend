@@ -18,9 +18,9 @@ def convert_gpx_to_poi():
     tree = ET.parse(file)
     root = tree.getroot()
 
-    # Definieer namespaces
+    # Correcte namespaces voor GPX 1.0
     ns = {
-        "gpx": "http://www.topografix.com/GPX/1/1",
+        "gpx": "http://www.topografix.com/GPX/1/0",
         "groundspeak": "http://www.groundspeak.com/cache/1/0/1"
     }
 
@@ -30,14 +30,14 @@ def convert_gpx_to_poi():
     poi_data = []
     waypoints_found = 0
 
-    # Zoek naar waypoints
-    for wpt in root.findall(".//{http://www.topografix.com/GPX/1/1}wpt"):
+    # Zoek naar waypoints in de nieuwe namespace
+    for wpt in root.findall(".//{http://www.topografix.com/GPX/1/0}wpt"):
         lat = wpt.get("lat")
         lon = wpt.get("lon")
         
         # Naam en beschrijving uit de GPX zelf
-        name = wpt.find("{http://www.topografix.com/GPX/1/1}name")
-        desc = wpt.find("{http://www.topografix.com/GPX/1/1}desc")
+        name = wpt.find("{http://www.topografix.com/GPX/1/0}name")
+        desc = wpt.find("{http://www.topografix.com/GPX/1/0}desc")
         
         # Extra geocache informatie uit Groundspeak
         cache_name = wpt.find("{http://www.groundspeak.com/cache/1/0/1}name")
