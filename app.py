@@ -4,7 +4,7 @@ import os
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)  # Voegt CORS ondersteuning toe
+CORS(app)
 
 @app.route("/api/convert", methods=["POST"])
 def convert_gpx_to_poi():
@@ -19,21 +19,14 @@ def convert_gpx_to_poi():
     tree = ET.parse(file)
     root = tree.getroot()
 
-    # Log de inhoud van het bestand voor debugging
-    print("Inhoud van het GPX bestand:")
-    print(ET.tostring(root, encoding="utf-8").decode("utf-8"))
-    
-    # Dynamisch de juiste namespace vinden
-    namespaces = {
-        'ns0': 'http://www.groundspeak.com/gpx/1/0'
-    }
-    
-    # Zoek naar de waypoints in het bestand met de dynamische namespaces
-    waypoints = root.findall(".//ns0:wpt", namespaces)
-    
-    # Log de gevonden waypoints voor debugging
-    print(f"Aantal waypoints gevonden: {len(waypoints)}")
-    
+    # Haal de standaard namespace op
+    namespace = {"gpx": "http://www.topografix.com/GPX/1/0"}
+
+    # Zoek naar waypoints binnen deze namespace
+    waypoints = root.findall("gpx:wpt", namespace)
+
+    print(f"Aantal waypoints gevonden: {len(waypoints)}")  # Debugging
+
     if not waypoints:
         return "Geen waypoints gevonden in het GPX-bestand!", 400
     
@@ -42,8 +35,8 @@ def convert_gpx_to_poi():
     for wpt in waypoints:
         lat = wpt.get("lat")
         lon = wpt.get("lon")
-        name = wpt.find("ns0:name", namespaces)
-        desc = wpt.find("ns0:desc", namespaces)
+        name = wpt.find("gpx:name", namespace)
+        desc = wpt.find("gpx:desc", namespace)
         
         poi_data.append({
             "name": name.text if name is not None else "Onbekend",
@@ -54,24 +47,20 @@ def convert_gpx_to_poi():
     
     # Maak het nieuwe GPX bestand aan
     gpx_data = ET.Element("gpx", version="1.1", creator="PQ2POI", xmlns="http://www.topografix.com/GPX/1/1")
-    
+
     for poi in poi_data:
         wpt = ET.SubElement(gpx_data, "wpt", lat=poi["lat"], lon=poi["lon"])
         name = ET.SubElement(wpt, "name")
         name.text = poi["name"]
         desc = ET.SubElement(wpt, "desc")
         desc.text = poi["desc"]
-    
-    # Maak een string van het nieuwe GPX bestand
+
+    # Mooi geformatteerd XML-bestand opslaan
     gpx_str = ET.tostring(gpx_data, encoding="utf-8", method="xml").decode("utf-8")
-    
-    # Zorg ervoor dat de tags netjes worden geformatteerd
     gpx_str = "\n".join([line.strip() for line in gpx_str.splitlines()])
 
-    # Zet de bestandnaam correct
     output_file = "converted_poi.gpx"
     
-    # Zet het GPX bestand om naar een Response object
     response = send_file(
         output_file,
         mimetype="application/gpx+xml",
