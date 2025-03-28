@@ -18,17 +18,21 @@ def convert_gpx_to_poi():
     tree = ET.parse(file)
     root = tree.getroot()
 
+    # Print het hele XML-bestand voor debugging
+    print(ET.tostring(root, encoding='utf-8').decode())
+
     # Namespaces gebruiken als nodig
     ns = {"gpx": "http://www.topografix.com/GPX/1/1"}
     
     poi_data = []
     waypoints_found = 0  # Debug teller
 
-    for wpt in root.findall("gpx:wpt", ns):
+    # We zoeken naar alle waypoints met de juiste namespace
+    for wpt in root.findall(".//{http://www.topografix.com/GPX/1/1}wpt"):
         lat = wpt.get("lat")
         lon = wpt.get("lon")
-        name = wpt.find("gpx:name", ns)
-        desc = wpt.find("gpx:desc", ns)
+        name = wpt.find("{http://www.topografix.com/GPX/1/1}name")
+        desc = wpt.find("{http://www.topografix.com/GPX/1/1}desc")
         
         poi_data.append([name.text if name is not None else "Onbekend", lat, lon, desc.text if desc is not None else ""])
         waypoints_found += 1  # Debug teller
