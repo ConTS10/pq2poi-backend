@@ -23,7 +23,11 @@ def convert_gpx_to_poi():
     # Maak een nieuwe GPX-root voor de POI's
     new_root = ET.Element("gpx", version="1.1", creator="PQ2POI", xmlns="http://www.topografix.com/GPX/1/1")
     
+    # Debugging: controleer het originele bestand
+    print("Root Element:", root.tag)
+    
     # Voeg de waypoints toe aan de nieuwe GPX
+    waypoints_added = 0
     for wpt in root.findall("gpx:wpt", ns):
         lat = wpt.get("lat")
         lon = wpt.get("lon")
@@ -38,7 +42,15 @@ def convert_gpx_to_poi():
             ET.SubElement(waypoint, "name").text = name.text
         if desc is not None:
             ET.SubElement(waypoint, "desc").text = desc.text
-
+        
+        waypoints_added += 1
+    
+    # Debugging: controleer het aantal gevonden waypoints
+    print(f"Waypoints gevonden: {waypoints_added}")
+    
+    if waypoints_added == 0:
+        print("Waarschuwing: Geen waypoints gevonden in het GPX-bestand!")
+    
     # Zet de nieuwe GPX om naar een bestand in geheugen
     output = BytesIO()
     tree = ET.ElementTree(new_root)  # We gebruiken de nieuwe root voor de ElementTree
