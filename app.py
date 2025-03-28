@@ -19,11 +19,18 @@ def convert_gpx_to_poi():
     tree = ET.parse(file)
     root = tree.getroot()
 
+    # Log de inhoud van het bestand voor debugging
+    print("Inhoud van het GPX bestand:")
+    print(ET.tostring(root, encoding="utf-8").decode("utf-8"))
+    
     # Gebruik de juiste namespaces voor GPX
     ns = {"gpx": "http://www.topografix.com/GPX/1/1"}  # Zorg ervoor dat de juiste namespace wordt gebruikt
     
     # Zoek naar de waypoints in het bestand
     waypoints = root.findall("gpx:wpt", ns)
+    
+    # Log de gevonden waypoints voor debugging
+    print(f"Aantal waypoints gevonden: {len(waypoints)}")
     
     if not waypoints:
         return "Geen waypoints gevonden in het GPX-bestand!", 400
