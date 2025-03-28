@@ -1,4 +1,4 @@
-from flask import Flask, request, send_file, Response
+from flask import Flask, request, send_file
 import xml.etree.ElementTree as ET
 import csv
 import os
@@ -18,26 +18,32 @@ def convert_gpx_to_poi():
     tree = ET.parse(file)
     root = tree.getroot()
 
-    # Print het hele XML-bestand voor debugging
-    print(ET.tostring(root, encoding='utf-8').decode())
+    # Definieer namespaces
+    ns = {
+        "gpx": "http://www.topografix.com/GPX/1/1",
+        "groundspeak": "http://www.groundspeak.com/cache/1/0/1"
+    }
 
-    # Namespaces gebruiken als nodig
-    ns = {"gpx": "http://www.topografix.com/GPX/1/1"}
-    
     poi_data = []
-    waypoints_found = 0  # Debug teller
-
-    # We zoeken naar alle waypoints met de juiste namespace
     for wpt in root.findall(".//{http://www.topografix.com/GPX/1/1}wpt"):
         lat = wpt.get("lat")
         lon = wpt.get("lon")
+        
+        # Naam en beschrijving uit de GPX zelf
         name = wpt.find("{http://www.topografix.com/GPX/1/1}name")
         desc = wpt.find("{http://www.topografix.com/GPX/1/1}desc")
         
-        poi_data.append([name.text if name is not None else "Onbekend", lat, lon, desc.text if desc is not None else ""])
-        waypoints_found += 1  # Debug teller
+        # Extra geocache informatie uit Groundspeak
+        cache_name = wpt.find("{http://www.groundspeak.com/cache/1/0/1}name")
+        cache_desc = wpt.find("{http://www.groundspeak.com/cache/1/0/1}long_description")
 
-    print(f"Waypoints gevonden: {waypoints_found}")  # Log het aantal waypoints
+        # Voeg de gevonden gegevens toe aan de lijst
+        poi_data.append([
+            cache_name.text if cache_name is not None else (name.text if name is not None else "Onbekend"),
+            lat,
+            lon,
+            cache_desc.text if cache_desc is not None else (desc.text if desc is not None else "Geen beschrijving")
+        ])
 
     # Maak een CSV-bestand
     output_file = "converted_poi.csv"
