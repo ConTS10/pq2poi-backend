@@ -17,8 +17,12 @@ def convert_gpx_to_poi():
     tree = ET.parse(file)
     root = tree.getroot()
 
-    # Namespaces gebruiken als nodig
-    ns = {"gpx": "http://www.topografix.com/GPX/1/1"}
+    # Zoek naar de versie van de namespace
+    ns = {}
+    if "{http://www.topografix.com/GPX/1/1}gpx" in root.tag:
+        ns = {"gpx": "http://www.topografix.com/GPX/1/1"}
+    elif "{http://www.topografix.com/GPX/1/0}gpx" in root.tag:
+        ns = {"gpx": "http://www.topografix.com/GPX/1/0"}
     
     # Maak een nieuwe GPX-root voor de POI's
     new_root = ET.Element("gpx", version="1.1", creator="PQ2POI", xmlns="http://www.topografix.com/GPX/1/1")
