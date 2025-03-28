@@ -40,15 +40,4 @@ def convert_pq_to_poi():
         # Combineer <name>, <desc>, <url> in de <name> tag met line breaks
         name = wpt.find("gpx:name", namespace).text if wpt.find("gpx:name", namespace) is not None else ""
         desc = wpt.find("gpx:desc", namespace).text if wpt.find("gpx:desc", namespace) is not None else ""
-        url = wpt.find("gpx:url", namespace).text if wpt.find("gpx:url", namespace) is not None else ""
-        
-        # Maak de <name> tag op zoals gewenst
-        combined_name = f"{name}\n{desc}\n{url}"
-        
-        # Voeg de gecombineerde naam toe aan de nieuwe <name> tag
-        sub_name = ET.SubElement(new_wpt, "name")
-        sub_name.text = combined_name
-        
-        # Voeg de andere sub-elementen toe aan het waypoint
-        for child in wpt:
-            sub_element = ET_
+        url = wpt.find("gpx:url", namespace).text if wpt.find
