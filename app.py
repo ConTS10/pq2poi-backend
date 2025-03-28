@@ -1,7 +1,6 @@
 from flask import Flask, request, send_file
 from flask_cors import CORS
 import xml.etree.ElementTree as ET
-import os
 import tempfile
 
 app = Flask(__name__)
@@ -20,8 +19,8 @@ def convert_gpx_to_poi():
     tree = ET.parse(file)
     root = tree.getroot()
 
-    # Namespaces gebruiken als nodig
-    ns = {"gpx": "http://www.topografix.com/GPX/1/1"}
+    # Gebruik de juiste namespace {http://www.topografix.com/GPX/1/0}
+    ns = {"gpx": "http://www.topografix.com/GPX/1/0"}
 
     # Maak een nieuw GPX-bestand aan
     new_gpx = ET.Element("gpx", version="1.1", creator="PQ2POI", xmlns="http://www.topografix.com/GPX/1/1")
