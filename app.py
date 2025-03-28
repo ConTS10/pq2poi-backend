@@ -1,4 +1,4 @@
-from flask import Flask, request, send_file
+from flask import Flask, request, send_file, Response
 import xml.etree.ElementTree as ET
 import csv
 import os
@@ -22,6 +22,8 @@ def convert_gpx_to_poi():
     ns = {"gpx": "http://www.topografix.com/GPX/1/1"}
     
     poi_data = []
+    waypoints_found = 0  # Debug teller
+
     for wpt in root.findall("gpx:wpt", ns):
         lat = wpt.get("lat")
         lon = wpt.get("lon")
@@ -29,6 +31,9 @@ def convert_gpx_to_poi():
         desc = wpt.find("gpx:desc", ns)
         
         poi_data.append([name.text if name is not None else "Onbekend", lat, lon, desc.text if desc is not None else ""])
+        waypoints_found += 1  # Debug teller
+
+    print(f"Waypoints gevonden: {waypoints_found}")  # Log het aantal waypoints
 
     # Maak een CSV-bestand
     output_file = "converted_poi.csv"
