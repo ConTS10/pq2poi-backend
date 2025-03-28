@@ -1,8 +1,10 @@
 from flask import Flask, request, send_file
+from flask_cors import CORS  # Importeer CORS
 import xml.etree.ElementTree as ET
 from io import BytesIO
 
 app = Flask(__name__)
+CORS(app)  # Sta CORS toe voor de hele app
 
 @app.route("/api/convert", methods=["POST"])
 def convert_gpx_to_poi():
