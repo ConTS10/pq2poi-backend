@@ -24,7 +24,13 @@ def convert_gpx_to_poi():
         "groundspeak": "http://www.groundspeak.com/cache/1/0/1"
     }
 
+    # Log het root-element om de structuur te zien
+    print(f"Root Element: {root.tag}")
+
     poi_data = []
+    waypoints_found = 0
+
+    # Zoek naar waypoints
     for wpt in root.findall(".//{http://www.topografix.com/GPX/1/1}wpt"):
         lat = wpt.get("lat")
         lon = wpt.get("lon")
@@ -37,13 +43,18 @@ def convert_gpx_to_poi():
         cache_name = wpt.find("{http://www.groundspeak.com/cache/1/0/1}name")
         cache_desc = wpt.find("{http://www.groundspeak.com/cache/1/0/1}long_description")
 
-        # Voeg de gevonden gegevens toe aan de lijst
-        poi_data.append([
-            cache_name.text if cache_name is not None else (name.text if name is not None else "Onbekend"),
-            lat,
-            lon,
-            cache_desc.text if cache_desc is not None else (desc.text if desc is not None else "Geen beschrijving")
-        ])
+        # Controleer of we waypoints vinden
+        if name is not None and lat and lon:
+            waypoints_found += 1
+            poi_data.append([
+                cache_name.text if cache_name is not None else (name.text if name is not None else "Onbekend"),
+                lat,
+                lon,
+                cache_desc.text if cache_desc is not None else (desc.text if desc is not None else "Geen beschrijving")
+            ])
+
+    # Log het aantal gevonden waypoints
+    print(f"Waypoints gevonden: {waypoints_found}")
 
     # Maak een CSV-bestand
     output_file = "converted_poi.csv"
@@ -51,6 +62,10 @@ def convert_gpx_to_poi():
         writer = csv.writer(csvfile)
         writer.writerow(["Naam", "Breedtegraad", "Lengtegraad", "Beschrijving"])
         writer.writerows(poi_data)
+
+    # Als geen waypoints zijn gevonden, log dan een waarschuwing
+    if waypoints_found == 0:
+        print("Waarschuwing: Geen waypoints gevonden in het GPX-bestand!")
 
     return send_file(output_file, as_attachment=True)
 
