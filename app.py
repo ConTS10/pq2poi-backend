@@ -43,4 +43,25 @@ def convert_pq_to_poi():
         url = wpt.find("gpx:url", namespace).text if wpt.find("gpx:url", namespace) is not None else ""
         
         # Maak de <name> tag op zoals gewenst
-        combined_name = f"{name}\n{desc}\n{url_
+        combined_name = f"{name}\n{desc}\n{url}"
+        
+        # Voeg de gecombineerde naam toe aan de nieuwe <name> tag
+        sub_name = ET.SubElement(new_wpt, "name")
+        sub_name.text = combined_name
+        
+        # Voeg de andere sub-elementen toe aan het waypoint
+        for child in wpt:
+            sub_element = ET.SubElement(new_wpt, child.tag, child.attrib)
+            sub_element.text = child.text
+    
+    gpx_data = ET.tostring(new_gpx, encoding='utf-8')
+    formatted_gpx = minidom.parseString(gpx_data).toprettyxml(indent="  ")  # Mooie opmaak
+    
+    output_file = "converted_poi.gpx"
+    with open(output_file, "w", encoding="utf-8") as f:
+        f.write(formatted_gpx)
+    
+    return send_file(output_file, as_attachment=True, download_name="converted_poi.gpx", mimetype="application/gpx+xml")
+
+if __name__ == '__main__':
+    app.run(debug=True)
