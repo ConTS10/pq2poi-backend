@@ -1,10 +1,18 @@
 from flask import Flask, request, send_file
 from flask_cors import CORS
 import xml.etree.ElementTree as ET
-import tempfile
+from io import BytesIO
+import xml.dom.minidom
 
 app = Flask(__name__)
-CORS(app)  # Sta CORS toe voor de hele app
+
+# Functie om XML netjes op te maken met inspringing
+def prettify_xml(element):
+    # Zet de XML om in een string
+    rough_string = ET.tostring(element, 'utf-8')
+    # Maak het mooi op met behulp van minidom
+    reparsed = xml.dom.minidom.parseString(rough_string)
+    return reparsed.toprettyxml(indent="  ")
 
 @app.route("/api/convert", methods=["POST"])
 def convert_gpx_to_poi():
@@ -14,39 +22,38 @@ def convert_gpx_to_poi():
     file = request.files["file"]
     if file.filename == "":
         return "Leeg bestand", 400
-
+    
     # Parse GPX
     tree = ET.parse(file)
     root = tree.getroot()
 
-    # Gebruik de juiste namespace {http://www.topografix.com/GPX/1/0}
-    ns = {"gpx": "http://www.topografix.com/GPX/1/0"}
+    ns = {"gpx": "http://www.topografix.com/GPX/1/1"}
 
-    # Maak een nieuw GPX-bestand aan
-    new_gpx = ET.Element("gpx", version="1.1", creator="PQ2POI", xmlns="http://www.topografix.com/GPX/1/1")
-
-    # Loop door alle waypoints en voeg ze toe
+    # Maak een nieuw GPX-bestand
+    gpx = ET.Element("gpx", version="1.1", creator="PQ2POI", xmlns="http://www.topografix.com/GPX/1/1")
+    
     for wpt in root.findall("gpx:wpt", ns):
         lat = wpt.get("lat")
         lon = wpt.get("lon")
         name = wpt.find("gpx:name", ns)
         desc = wpt.find("gpx:desc", ns)
-        
-        # Maak een nieuw waypoint element
-        wpt_element = ET.SubElement(new_gpx, "wpt", lat=lat, lon=lon)
-        if name is not None:
-            ET.SubElement(wpt_element, "name").text = name.text
-        if desc is not None:
-            ET.SubElement(wpt_element, "desc").text = desc.text
-    
-    # Genereer een tijdelijk bestand om de GPX in op te slaan
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".gpx") as tmp_file:
-        tree = ET.ElementTree(new_gpx)
-        tree.write(tmp_file, encoding="utf-8", xml_declaration=True)
 
-        tmp_file.close()
-        # Stuur het bestand als antwoord
-        return send_file(tmp_file.name, as_attachment=True, download_name="converted_poi.gpx", mimetype="application/gpx+xml")
+        # Voeg een waypoint toe aan de nieuwe GPX
+        wpt_elem = ET.SubElement(gpx, "wpt", lat=lat, lon=lon)
+        if name is not None:
+            name_elem = ET.SubElement(wpt_elem, "name")
+            name_elem.text = name.text
+        if desc is not None:
+            desc_elem = ET.SubElement(wpt_elem, "desc")
+            desc_elem.text = desc.text
+
+    # Maak het GPX bestand mooi op
+    pretty_gpx = prettify_xml(gpx)
+
+    # Zet de geformatteerde string om naar een BytesIO object
+    gpx_output = BytesIO(pretty_gpx.encode('utf-8'))
+
+    return send_file(gpx_output, as_attachment=True, download_name="converted_poi.gpx", mimetype="application/gpx+xml")
 
 if __name__ == "__main__":
     app.run(debug=True)
