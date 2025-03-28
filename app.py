@@ -23,11 +23,13 @@ def convert_gpx_to_poi():
     print("Inhoud van het GPX bestand:")
     print(ET.tostring(root, encoding="utf-8").decode("utf-8"))
     
-    # Gebruik de juiste namespaces voor GPX
-    ns = {"gpx": "http://www.topografix.com/GPX/1/1"}  # Zorg ervoor dat de juiste namespace wordt gebruikt
+    # Dynamisch de juiste namespace vinden
+    namespaces = {
+        'ns0': 'http://www.groundspeak.com/gpx/1/0'
+    }
     
-    # Zoek naar de waypoints in het bestand
-    waypoints = root.findall("gpx:wpt", ns)
+    # Zoek naar de waypoints in het bestand met de dynamische namespaces
+    waypoints = root.findall(".//ns0:wpt", namespaces)
     
     # Log de gevonden waypoints voor debugging
     print(f"Aantal waypoints gevonden: {len(waypoints)}")
@@ -40,8 +42,8 @@ def convert_gpx_to_poi():
     for wpt in waypoints:
         lat = wpt.get("lat")
         lon = wpt.get("lon")
-        name = wpt.find("gpx:name", ns)
-        desc = wpt.find("gpx:desc", ns)
+        name = wpt.find("ns0:name", namespaces)
+        desc = wpt.find("ns0:desc", namespaces)
         
         poi_data.append({
             "name": name.text if name is not None else "Onbekend",
