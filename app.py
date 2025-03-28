@@ -62,4 +62,4 @@ def convert_pq_to_poi():
     with open(output_file, "w", encoding="utf-8") as f:
         f.write(formatted_gpx)
     
-    return send_file(output_file, as_attachment=True, download_name="converted_poi.gpx", mimetype="application/gpx+xml"
+    return send_file(output_file, as_attachment=True, download_name="converted_poi.gpx", mimetype="application/gpx+xml")
