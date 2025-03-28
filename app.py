@@ -19,7 +19,8 @@ def convert_pq_to_poi():
     tree = ET.parse(file)
     root = tree.getroot()
     
-    namespace = {"gpx": "http://www.topografix.com/GPX/1/0"}  # Correcte namespace behouden
+    # Correcte namespace behouden zonder gebruik van prefixen
+    namespace = {"gpx": "http://www.topografix.com/GPX/1/0"}
     waypoints = root.findall(".//gpx:wpt", namespace)
     
     if not waypoints:
@@ -37,12 +38,16 @@ def convert_pq_to_poi():
             "lon": wpt.get("lon")
         })
         for child in wpt:
-            sub_element = ET.SubElement(new_wpt, child.tag, child.attrib)
+            # Verwijder namespace-prefix door alleen de tagnaam te gebruiken zonder prefix
+            tag_name = child.tag.split('}')[-1]  # Neem alles na de '}'
+            sub_element = ET.SubElement(new_wpt, tag_name, child.attrib)
             sub_element.text = child.text
     
+    # Genereer het GPX-bestand en pas de opmaak aan
     gpx_data = ET.tostring(new_gpx, encoding='utf-8')
-    formatted_gpx = minidom.parseString(gpx_data).toprettyxml(indent="  ")  # Mooie opmaak
+    formatted_gpx = minidom.parseString(gpx_data).toprettyxml(indent="  ")
     
+    # Schrijf het geformatteerde GPX bestand
     output_file = "converted_poi.gpx"
     with open(output_file, "w", encoding="utf-8") as f:
         f.write(formatted_gpx)
