@@ -51,6 +51,7 @@ def convert_pq_to_poi():
         
         # Voeg de andere sub-elementen toe aan het waypoint
         for child in wpt:
+            # Zorg ervoor dat we de namespace behouden bij het toevoegen van child elementen
             sub_element = ET.SubElement(new_wpt, child.tag, child.attrib)
             sub_element.text = child.text
     
@@ -61,7 +62,4 @@ def convert_pq_to_poi():
     with open(output_file, "w", encoding="utf-8") as f:
         f.write(formatted_gpx)
     
-    return send_file(output_file, as_attachment=True, download_name="converted_poi.gpx", mimetype="application/gpx+xml")
-
-if __name__ == '__main__':
-    app.run(debug=True)
+    return send_file(output_file, as_attachment=True, download_name="converted_poi.gpx", mimetype="application/gpx+xml_
