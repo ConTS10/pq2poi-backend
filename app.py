@@ -19,8 +19,7 @@ def convert_pq_to_poi():
     tree = ET.parse(file)
     root = tree.getroot()
     
-    # Correcte namespace behouden zonder gebruik van prefixen
-    namespace = {"gpx": "http://www.topografix.com/GPX/1/0"}
+    namespace = {"gpx": "http://www.topografix.com/GPX/1/0"}  # Correcte namespace behouden
     waypoints = root.findall(".//gpx:wpt", namespace)
     
     if not waypoints:
@@ -37,22 +36,19 @@ def convert_pq_to_poi():
             "lat": wpt.get("lat"),
             "lon": wpt.get("lon")
         })
+        
+        # Combineer <name>, <desc>, <url> in de <name> tag met line breaks
+        name = wpt.find("gpx:name", namespace).text if wpt.find("gpx:name", namespace) is not None else ""
+        desc = wpt.find("gpx:desc", namespace).text if wpt.find("gpx:desc", namespace) is not None else ""
+        url = wpt.find("gpx:url", namespace).text if wpt.find("gpx:url", namespace) is not None else ""
+        
+        # Maak de <name> tag op zoals gewenst
+        combined_name = f"{name}\n{desc}\n{url}"
+        
+        # Voeg de gecombineerde naam toe aan de nieuwe <name> tag
+        sub_name = ET.SubElement(new_wpt, "name")
+        sub_name.text = combined_name
+        
+        # Voeg de andere sub-elementen toe aan het waypoint
         for child in wpt:
-            # Verwijder namespace-prefix door alleen de tagnaam te gebruiken zonder prefix
-            tag_name = child.tag.split('}')[-1]  # Neem alles na de '}'
-            sub_element = ET.SubElement(new_wpt, tag_name, child.attrib)
-            sub_element.text = child.text
-    
-    # Genereer het GPX-bestand en pas de opmaak aan
-    gpx_data = ET.tostring(new_gpx, encoding='utf-8')
-    formatted_gpx = minidom.parseString(gpx_data).toprettyxml(indent="  ")
-    
-    # Schrijf het geformatteerde GPX bestand
-    output_file = "converted_poi.gpx"
-    with open(output_file, "w", encoding="utf-8") as f:
-        f.write(formatted_gpx)
-    
-    return send_file(output_file, as_attachment=True, download_name="converted_poi.gpx", mimetype="application/gpx+xml")
-
-if __name__ == '__main__':
-    app.run(debug=True)
+            sub_element = ET_
