@@ -1,6 +1,7 @@
 from flask import Flask, request, send_file
 import xml.etree.ElementTree as ET
 import os
+import io
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -55,20 +56,21 @@ def convert_gpx_to_poi():
         desc = ET.SubElement(wpt, "desc")
         desc.text = poi["desc"]
 
-    # Mooi geformatteerd XML-bestand opslaan
+    # Mooi geformatteerd XML-bestand genereren
     gpx_str = ET.tostring(gpx_data, encoding="utf-8", method="xml").decode("utf-8")
-    gpx_str = "\n".join([line.strip() for line in gpx_str.splitlines()])
 
-    output_file = "converted_poi.gpx"
-    
-    response = send_file(
-        output_file,
+    # Opslaan in een BytesIO-object (geheugenbuffer)
+    gpx_io = io.BytesIO()
+    gpx_io.write(gpx_str.encode("utf-8"))
+    gpx_io.seek(0)
+
+    # Verstuur het bestand als download zonder fysiek bestand op schijf
+    return send_file(
+        gpx_io,
         mimetype="application/gpx+xml",
         as_attachment=True,
         download_name="converted_poi.gpx"
     )
-    response.set_data(gpx_str.encode("utf-8"))
-    return response
 
 if __name__ == "__main__":
     app.run(debug=True)
